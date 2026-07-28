@@ -1,15 +1,38 @@
 {
   "name": "vendure-qa-automation",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {},
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "scripts": {
+    "bddgen": "bddgen",
+    "test": "bddgen && playwright test",
+    "test:ui": "bddgen && playwright test --project=chromium",
+    "test:api": "playwright test --project=api",
+    "report": "playwright show-report",
+    "install:browsers": "playwright install --with-deps",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "keywords": [
+    "playwright",
+    "bdd",
+    "vendure",
+    "qa-automation",
+    "typescript"
+  ],
+  "author": "Nimantha Fernando",
+  "license": "MIT",
+  "description": "Playwright + BDD (playwright-bdd) test automation framework for the Vendure e-commerce storefront, covering UI and API testing.",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@types/node": "^26.1.1",
-    "typescript": "^7.0.2"
+    "dotenv": "^17.4.2",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "playwright-bdd": "^9.2.0",
+    "prettier": "^3.9.6",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.65.0"
   }
 }

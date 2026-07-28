@@ -1,0 +1,68 @@
+name: Playwright Tests
+
+# This suite runs against a Vendure app that only exists on a local
+# machine (no publicly reachable URL), so it runs on a *self-hosted*
+# runner — a small agent installed on that same machine — instead of
+# GitHub's hosted cloud runners, which have no route to your localhost.
+# See docs/CI-SETUP.md for how to register the runner.
+#
+# Security note: self-hosted runners execute workflow code directly on
+# the machine they're installed on. Deliberately NOT triggering on
+# `pull_request` here, so an external PR to this repo can never run
+# code on your machine. Trigger manually or on pushes to main instead.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    name: UI + API tests
+    runs-on: self-hosted
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Generate BDD tests from .feature files
+        run: npm run bddgen
+
+      - name: Run Playwright tests
+        run: npx playwright test
+        env:
+          CI: true
+          # Override these in the repo/environment's Actions secrets or
+          # variables if your local app runs on non-default ports.
+          STOREFRONT_BASE_URL: ${{ vars.STOREFRONT_BASE_URL || 'http://localhost:3001' }}
+          ADMIN_BASE_URL: ${{ vars.ADMIN_BASE_URL || 'http://localhost:3000' }}
+          API_USERNAME: ${{ secrets.API_USERNAME }}
+          API_PASSWORD: ${{ secrets.API_PASSWORD }}
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload traces & screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 14

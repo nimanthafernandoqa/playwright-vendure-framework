@@ -7,3 +7,18 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 .env
+
+# playwright-bdd: generated test files, regenerated from features/ + steps/
+/.features-gen/
+/.features-gen-*/
+
+# Stray/leftover files from local debugging — safe to delete, kept out of git either way
+/12.0.1
+tests/ui/storefront/_legacy/
+tests/ui/storefront/*.deprecated
+
+# Dead code: cart test data now lives inline in Gherkin tables (features/)
+/test-data/storefront/products.ts
+
+# Moved to the separate playwright-practice sandbox project (../playwright-practice)
+/interview-practice/
