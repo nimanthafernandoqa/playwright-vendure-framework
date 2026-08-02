@@ -18,6 +18,7 @@ import { HomePage } from '../../pages/storefront/HomePage';
 import { ProductListPage } from '../../pages/storefront/ProductListPage';
 import { ProductDetailsPage } from '../../pages/storefront/ProductDetailsPage';
 import { ShoppingCartPage } from '../../pages/storefront/ShoppingCartPage';
+import { CheckoutPage } from '../../pages/storefront/CheckoutPage';
 import { HeaderComponent } from '../../pages/storefront/components/HeaderComponent';
 
 /**
@@ -30,6 +31,7 @@ type StorefrontFixtures = {
   productListPage: ProductListPage;
   productDetailsPage: ProductDetailsPage;
   shoppingCartPage: ShoppingCartPage;
+  checkoutPage: CheckoutPage;
   headerComponent: HeaderComponent;
 };
 
@@ -52,6 +54,10 @@ export const test = base.extend<StorefrontFixtures>({
 
   shoppingCartPage: async ({ page }, use) => {
     await use(new ShoppingCartPage(page));
+  },
+
+  checkoutPage: async ({ page }, use) => {
+    await use(new CheckoutPage(page));
   },
 
   headerComponent: async ({ page }, use) => {

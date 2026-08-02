@@ -16,6 +16,7 @@ export class ShoppingCartPage {
   private readonly cartHeading: Locator;
   private readonly removeItemButton: Locator;
   private readonly emptyCartHeading: Locator;
+  private readonly proceedToCheckoutButton: Locator;
 
   constructor(private readonly page: Page) {
     this.cartHeading = page.getByRole('heading', {
@@ -26,6 +27,11 @@ export class ShoppingCartPage {
 
     this.emptyCartHeading = page.getByRole('heading', {
       name: /your cart is empty/i,
+    });
+
+    this.proceedToCheckoutButton = page.getByRole('button', {
+      name: 'Proceed to Checkout',
+      exact: true,
     });
   }
 
@@ -107,6 +113,17 @@ export class ShoppingCartPage {
    */
   async verifyCartIsEmpty(): Promise<void> {
     await expect(this.emptyCartHeading).toBeVisible();
+  }
+
+  /**
+   * Leaves the cart for the checkout wizard ("/en/checkout"). Despite its
+   * href, this is rendered as a <button> here (confirmed live), not a
+   * plain link — getByRole('button', ...) is used accordingly rather than
+   * a link role.
+   */
+  async proceedToCheckout(): Promise<void> {
+    await this.proceedToCheckoutButton.click();
+    await this.page.waitForURL(/\/checkout$/);
   }
 
   /**
