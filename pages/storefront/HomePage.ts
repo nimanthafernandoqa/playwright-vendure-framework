@@ -72,7 +72,7 @@ export class HomePage {
    * @param product Exact product name to search for and expect a result for.
    */
   async searchForProduct(product: string): Promise<void> {
-    await this.page.goto('/en/search');
+    await this.page.goto('/en/search', { waitUntil: 'domcontentloaded' });
 
     await expect(this.searchBox).toBeVisible();
     await expect(this.searchBox).toBeEditable();

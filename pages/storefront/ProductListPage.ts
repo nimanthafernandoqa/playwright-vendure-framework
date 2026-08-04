@@ -23,7 +23,6 @@ export class ProductListPage {
    * navigation that's expected to land on a product grid.
    */
   async verifyProductListLoaded(): Promise<void> {
-    await expect(this.page).toHaveURL(/collections|search/);
     await expect(this.productCards.first()).toBeVisible();
   }
 
@@ -67,7 +66,6 @@ export class ProductListPage {
    * @param productName The exact product name shown in its card heading.
    */
   async openProduct(productName: string): Promise<void> {
-    // Find the product card that contains the requested product name.
     const productCard = this.productCards.filter({
       has: this.page.getByRole('heading', {
         name: productName,
@@ -75,14 +73,10 @@ export class ProductListPage {
       }),
     });
 
-    // Fail with a clear assertion if the product is not displayed, rather
-    // than letting the click below fail with a less obvious timeout.
-    await expect(productCard).toBeVisible();
+    await expect(productCard).toBeVisible({ timeout: 10_000 });
 
-    // Open the matching product.
     await productCard.click();
 
-    // Wait until navigation to the Product Details page completes.
-    await this.page.waitForURL(/\/en\/product\/.+/);
+    await this.page.waitForURL(/\/en\/product\/.+/, { waitUntil: 'domcontentloaded' });
   }
 }

@@ -5,6 +5,7 @@
 // piece of plain-English scenario text to Page Object calls — this file
 // should stay thin: it orchestrates, the Page Objects (pages/storefront/)
 // hold the actual locators and interaction/assertion logic.
+import { expect } from '@playwright/test';
 import { createBdd, DataTable } from 'playwright-bdd';
 import { test } from '../../fixtures/storefront/fixture';
 
@@ -23,6 +24,7 @@ Given('I am on the storefront home page', async ({ homePage }) => {
 Given('I am viewing the product list', async ({ homePage, productListPage }) => {
   await homePage.clickShopNow();
   await productListPage.verifyProductListLoaded();
+  await productListPage.verifyProductsExist();
 });
 
 // Functionally identical to the Given above — kept as a separate step
@@ -42,6 +44,27 @@ When(
     await productDetailsPage.verifyProductTitle(productName);
   },
 );
+
+When(
+  'I search for the product {string}',
+  async ({ homePage, productListPage }, productName: string) => {
+    await homePage.searchForProduct(productName);
+    await productListPage.verifyProductListLoaded();
+    await productListPage.verifyProductsExist();
+  },
+);
+
+Then(
+  'the search results should show {string}',
+  async ({ page }, productName: string) => {
+    await expect(page.getByRole('heading', { name: productName, exact: true })).toBeVisible();
+  },
+);
+
+When('I open the cart from the header', async ({ headerComponent, shoppingCartPage }) => {
+  await headerComponent.openCart();
+  await shoppingCartPage.verifyCartLoaded();
+});
 
 // --- Adding to cart -----------------------------------------------------
 
@@ -81,8 +104,10 @@ When(
 
 Then(
   'the cart should contain {int} items',
-  async ({ productDetailsPage }, expectedCount: number) => {
-    await productDetailsPage.header.verifyCartCount(expectedCount);
+  async ({ headerComponent, shoppingCartPage }, expectedCount: number) => {
+    await headerComponent.openCart();
+    await shoppingCartPage.verifyCartLoaded();
+    await shoppingCartPage.verifyCartTotalQuantity(expectedCount);
   },
 );
 

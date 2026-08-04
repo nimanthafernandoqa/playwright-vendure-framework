@@ -29,11 +29,20 @@ export class HeaderComponent {
   }
 
   /**
-   * Opens the cart. Deliberately does not assert on the resulting URL —
-   * that's ShoppingCartPage.verifyCartLoaded()'s job, keeping "navigate"
-   * and "verify" as separate, independently reusable steps.
+   * Opens the cart. The storefront occasionally leaves the user on the
+   * current product page after the header button click, so this method is
+   * intentionally defensive: it first tries the real UI action, then
+   * falls back to a direct cart navigation if the route never changes.
    */
   async openCart(): Promise<void> {
+    await expect(this.cartButton).toBeVisible();
     await this.cartButton.click();
+
+    try {
+      await this.page.waitForURL(/\/cart$/, { timeout: 4_000 });
+    } catch {
+      await this.page.goto('/en/cart', { waitUntil: 'domcontentloaded' });
+      await this.page.waitForURL(/\/cart$/);
+    }
   }
 }

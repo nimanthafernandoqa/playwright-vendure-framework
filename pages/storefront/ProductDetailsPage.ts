@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { HeaderComponent } from './components/HeaderComponent';
+import { ShoppingCartPage } from './ShoppingCartPage';
 
 /**
  * Page Object for a single product's details page
@@ -14,11 +15,13 @@ export class ProductDetailsPage {
   private readonly productTitleName: Locator;
   private readonly addToCartButton: Locator;
   readonly header: HeaderComponent;
+  private readonly shoppingCartPage: ShoppingCartPage;
 
   constructor(private readonly page: Page) {
     this.productTitleName = page.getByRole('heading', { level: 1 });
     this.addToCartButton = page.getByRole('button', { name: /add to cart/i });
     this.header = new HeaderComponent(page);
+    this.shoppingCartPage = new ShoppingCartPage(page);
   }
 
   /**
@@ -50,15 +53,19 @@ export class ProductDetailsPage {
    *   otherwise).
    */
   async addProductToCart(quantity: number): Promise<void> {
-    for (let i = 0; i < quantity; i++) {
-      await expect(
-        this.addToCartButton,
-        `"Add to Cart" did not become clickable again after ${i} click(s). ` +
-          `This product page may only support adding a single unit per visit — ` +
-          `use the cart's own quantity control to add more of the same item.`,
-      ).toBeVisible({ timeout: 5_000 });
+    await expect(this.addToCartButton).toBeVisible();
+    await this.addToCartButton.click();
 
-      await this.addToCartButton.click();
+    if (quantity > 1) {
+      const productName = (await this.productTitleName.textContent())?.trim();
+
+      if (!productName) {
+        throw new Error('Could not resolve the current product name from the details page.');
+      }
+
+      await this.header.openCart();
+      await this.shoppingCartPage.verifyCartLoaded();
+      await this.shoppingCartPage.increaseProductQuantity(productName, quantity - 1);
     }
   }
 

@@ -98,12 +98,44 @@ export class ShoppingCartPage {
     const decreaseButton = item.locator('button:has(svg.lucide-minus)');
     const quantity = item.locator('span.tabular-nums');
 
+    await expect(async () => {
+      await expect(item).toBeVisible({ timeout: 2_000 });
+      await expect(quantity).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
+
     for (let index = 0; index < amount; index++) {
-      const before = await quantity.textContent();
+      const before = (await quantity.textContent())?.trim() ?? '';
 
       await decreaseButton.click();
 
-      await expect(quantity).not.toHaveText(before ?? '');
+      await expect(quantity).not.toHaveText(before);
+    }
+  }
+
+  /**
+   * Clicks a cart line item's "+" (increase quantity) button the given
+   * number of times.
+   *
+   * @param productName Exact product name as shown in the cart line item.
+   * @param amount How many times to click increase.
+   */
+  async increaseProductQuantity(productName: string, amount: number): Promise<void> {
+    const item = this.cartItem(productName);
+
+    const increaseButton = item.locator('button:has(svg.lucide-plus)');
+    const quantity = item.locator('span.tabular-nums');
+
+    await expect(async () => {
+      await expect(item).toBeVisible({ timeout: 2_000 });
+      await expect(quantity).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
+
+    for (let index = 0; index < amount; index++) {
+      const before = (await quantity.textContent())?.trim() ?? '';
+
+      await increaseButton.click();
+
+      await expect(quantity).not.toHaveText(before);
     }
   }
 
@@ -132,6 +164,15 @@ export class ShoppingCartPage {
    * test hook, so this walks up from the product name link to its
    * nearest ancestor `<div>` matching the row's known layout classes —
    * see the class-level fragility note above.
+   *
+   * This must be the *nearest* matching ancestor, not just *any* ancestor
+   * div — confirmed live that a plain `page.locator('div').filter({ has:
+   * link })` matches every ancestor div up the tree (4 of them on the
+   * real cart page: the row, its list wrapper, the grid, and the page
+   * container), which throws a strict-mode violation the moment any
+   * method below tries to `.click()`/`.fill()` inside it. The XPath walk
+   * stops at the first ancestor whose class list contains the row's
+   * known layout classes, giving exactly one match.
    */
   private cartItem(productName: string): Locator {
     return this.page
@@ -156,6 +197,28 @@ export class ShoppingCartPage {
     const quantity = item.locator('span.tabular-nums');
 
     await expect(quantity).toHaveText(String(expectedQuantity));
+  }
+
+  /**
+   * Verifies the total quantity across the cart page by summing each row's
+   * visible quantity badge. This is a more stable assertion than reading the
+   * header badge, because the header counter can lag behind the actual cart
+   * line-item DOM after a mutation.
+   */
+  async verifyCartTotalQuantity(expectedQuantity: number): Promise<void> {
+    const quantitySpans = this.page.locator('span.tabular-nums');
+
+    await expect(async () => {
+      await expect(quantitySpans.first()).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
+
+    const values = await quantitySpans.allTextContents();
+    const total = values.reduce((sum, value) => {
+      const parsed = Number.parseInt(value.trim(), 10);
+      return Number.isNaN(parsed) ? sum : sum + parsed;
+    }, 0);
+
+    expect(total).toBe(expectedQuantity);
   }
 
   /**

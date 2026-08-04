@@ -19,10 +19,24 @@ Feature: Storefront shopping cart
       | Balloon Chair | 3        |
     Then the cart should contain 5 items
 
-  Scenario: Guest removes a product from the cart
+  Scenario: Guest removes the only product from the cart and verifies the cart is empty
     When I open the product "Aloe Vera"
     And I add 1 of the product to the cart
     And I remove the product from the cart
+    Then the cart should be empty
+
+  Scenario: Guest searches for a product from the storefront header
+    When I search for the product "Basketball"
+    Then the search results should show "Basketball"
+
+  Scenario: Guest searches for a product and then adds it to the cart
+    When I search for the product "Basketball"
+    And I open the product "Basketball"
+    And I add 1 of the product to the cart
+    Then the cart should contain 1 items
+
+  Scenario: Guest opens the cart directly from the header when it is empty
+    When I open the cart from the header
     Then the cart should be empty
 
   Scenario: Guest updates and removes multiple products from the cart
