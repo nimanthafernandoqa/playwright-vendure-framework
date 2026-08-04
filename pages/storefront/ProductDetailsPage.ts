@@ -35,30 +35,23 @@ export class ProductDetailsPage {
   /**
    * Adds the given quantity of the current product to the cart.
    *
-   * A real UI constraint, not just a testing detail: the button only
-   * supports being clicked once per page visit (its label runs through
-   * "Add to Cart" → "Adding..." → back to "Add to Cart" — confirmed live
-   * that it reverts rather than settling on "Added to Cart", so button
-   * text can't be used as a completion signal; a toast briefly appears
-   * instead, but that's transient and not worth depending on either). So
-   * quantity is handled in two parts: one "Add to Cart" click gets the
-   * first unit in, then any remainder is added from the cart page's own
-   * "+" control (see ShoppingCartPage.increaseProductQuantity).
+   * The product-page Add to Cart action is not retried because each
+   * successful click adds another unit. Extra quantity is handled from the
+   * cart page's own "+" control after the first unit is present.
    *
    * @param quantity Total number of units to end up with in the cart.
    */
   async addProductToCart(quantity: number): Promise<void> {
     await expect(this.addToCartButton).toBeVisible();
 
-    // Adding to cart is an async mutation on this storefront (confirmed
-    // live: the button passes through a disabled "Adding..." state before
-    // settling). The one durable, non-transient signal that it actually
-    // completed is the header cart count changing, so capture it before
-    // clicking and wait for it to differ afterwards — the same
-    // before/after-text-diff pattern already used for the cart page's own
-    // +/- controls (see ShoppingCartPage.reduceProductQuantity). Without
-    // this wait, callers that immediately act on the cart (e.g. opening
-    // it) can race the mutation and observe a stale/empty cart.
+    const productName = (await this.productTitleName.textContent())?.trim();
+
+    if (!productName) {
+      throw new Error(
+        'Could not resolve the current product name from the details page.',
+      );
+    }
+
     const cartCountBefore = (await this.header.cartButton.textContent()) ?? '';
 
     await this.addToCartButton.click();
@@ -69,14 +62,9 @@ export class ProductDetailsPage {
     }).toPass({ timeout: 10_000 });
 
     if (quantity > 1) {
-      const productName = (await this.productTitleName.textContent())?.trim();
-
-      if (!productName) {
-        throw new Error('Could not resolve the current product name from the details page.');
-      }
-
       await this.header.openCart();
       await this.shoppingCartPage.verifyCartLoaded();
+      await this.shoppingCartPage.verifyProductQuantity(productName, 1);
       await this.shoppingCartPage.increaseProductQuantity(productName, quantity - 1);
     }
   }

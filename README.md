@@ -38,6 +38,10 @@ deliberately evolved, step by step, into what it is now:
    alongside this framework now live in their own separate project,
    `playwright-practice`, so this repo stays focused as a single,
    coherent portfolio piece.
+6. **Guest checkout added.** A full end-to-end flow — contact details,
+   shipping address, delivery method, payment, order confirmation —
+   without creating an account. See `features/storefront/checkout.feature`
+   and `pages/storefront/CheckoutPage.ts`.
 
 If you're new to this codebase, that ordering is also the recommended
 reading order: `features/` → `steps/` → `fixtures/` → `pages/`.
@@ -61,10 +65,12 @@ reading order: `features/` → `steps/` → `fixtures/` → `pages/`.
 vendure-qa-automation
 │
 ├── features/storefront/       # Gherkin .feature files — BDD scenarios,
-│   └── cart.feature           #   plain-English Given/When/Then
+│   ├── cart.feature           #   plain-English Given/When/Then
+│   └── checkout.feature       #   guest checkout, end-to-end
 │
 ├── steps/storefront/           # Step definitions implementing the .feature
-│   └── cart.steps.ts           #   files — orchestrates Page Object calls
+│   ├── cart.steps.ts           #   files — orchestrates Page Object calls
+│   └── checkout.steps.ts
 │
 ├── fixtures/storefront/        # Playwright fixtures — construct each Page
 │   └── fixture.ts              #   Object and inject it into step functions
@@ -74,6 +80,7 @@ vendure-qa-automation
 │   ├── ProductListPage.ts
 │   ├── ProductDetailsPage.ts
 │   ├── ShoppingCartPage.ts
+│   ├── CheckoutPage.ts
 │   └── components/
 │       └── HeaderComponent.ts  # Reusable header (cart icon), composed
 │                                #   into ProductDetailsPage
@@ -223,9 +230,9 @@ for the workflow itself (annotated with the same reasoning inline).
 
 - ✅ Page Object Model + BDD conversion (Gherkin scenarios)
 - ✅ Shopping cart: add, remove, update quantity
+- ✅ Guest checkout flow, end-to-end
 - ✅ Shop API testing (products, search, order, auth)
 - ✅ GitHub Actions CI/CD (self-hosted runner)
-- ⏳ Checkout flow
 - ⏳ Admin API / Admin UI coverage
 - ⏳ Accessibility testing
 - ⏳ Performance testing (k6)

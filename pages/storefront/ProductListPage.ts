@@ -21,8 +21,12 @@ export class ProductListPage {
    * Asserts we're on a listing page (collections or search results) and
    * that at least one product card has rendered. Call this after any
    * navigation that's expected to land on a product grid.
+   *
+   * The home page also renders product cards, so assert the route first
+   * before accepting the visible card grid as the listing page.
    */
   async verifyProductListLoaded(): Promise<void> {
+    await expect(this.page).toHaveURL(/\/en\/(search|collection)/, { timeout: 10_000 });
     await expect(this.productCards.first()).toBeVisible();
   }
 

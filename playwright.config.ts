@@ -37,7 +37,11 @@ export default defineConfig({
   // Retry failures in CI only — local runs should fail immediately so
   // flakiness is obvious while you're actively working on a test.
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : 1,
+  // Always 1, including in CI: the self-hosted runner drives tests against
+  // the same single local Vendure dev server as local runs (see the
+  // fullyParallel note above) — CI isn't a separate, scaled environment
+  // here, so the cross-test cart-interference risk applies there too.
+  workers: 1,
   // 'html' -> the local report opened via `npm run report`.
   // 'github' -> annotates failures directly on the CI run/PR.
   reporter: [['html'], ['github']],

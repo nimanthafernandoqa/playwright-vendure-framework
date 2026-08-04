@@ -63,10 +63,8 @@ export class CheckoutPage {
   private readonly postalCodeInput: Locator;
   private readonly phoneNumberInput: Locator;
   // Opens a dialog containing its own search box + listbox of options
-  // (role="option") — confirmed live rather than assumed, since this is
-  // a custom combobox widget, not a native <select> (see ShoppingCartPage
-  // header comment for this project's general stance on non-native
-  // widgets needing their own handling).
+  // (role="option"). This is a custom combobox widget, not a native
+  // <select>.
   private readonly countryTrigger: Locator;
   private readonly countrySearchInput: Locator;
 
@@ -90,12 +88,27 @@ export class CheckoutPage {
 
     this.fullNameInput = page.getByRole('textbox', { name: 'Full Name', exact: false });
     this.companyInput = page.getByRole('textbox', { name: 'Company', exact: true });
-    this.streetAddressInput = page.getByRole('textbox', { name: 'Street Address', exact: false });
-    this.apartmentInput = page.getByRole('textbox', { name: 'Apartment, suite, etc.', exact: true });
+    this.streetAddressInput = page.getByRole('textbox', {
+      name: 'Street Address',
+      exact: false,
+    });
+    this.apartmentInput = page.getByRole('textbox', {
+      name: 'Apartment, suite, etc.',
+      exact: true,
+    });
     this.cityInput = page.getByRole('textbox', { name: 'City', exact: false });
-    this.stateProvinceInput = page.getByRole('textbox', { name: 'State/Province', exact: true });
-    this.postalCodeInput = page.getByRole('textbox', { name: 'Postal Code', exact: false });
-    this.phoneNumberInput = page.getByRole('textbox', { name: 'Phone Number', exact: false });
+    this.stateProvinceInput = page.getByRole('textbox', {
+      name: 'State/Province',
+      exact: true,
+    });
+    this.postalCodeInput = page.getByRole('textbox', {
+      name: 'Postal Code',
+      exact: false,
+    });
+    this.phoneNumberInput = page.getByRole('textbox', {
+      name: 'Phone Number',
+      exact: false,
+    });
     this.countryTrigger = page.getByRole('combobox');
     this.countrySearchInput = page.getByPlaceholder('Search country...');
 
@@ -107,7 +120,10 @@ export class CheckoutPage {
       name: 'Continue to review',
       exact: true,
     });
-    this.placeOrderButton = page.getByRole('button', { name: 'Place Order', exact: true });
+    this.placeOrderButton = page.getByRole('button', {
+      name: 'Place Order',
+      exact: true,
+    });
 
     this.orderConfirmedHeading = page.getByRole('heading', { name: 'Order Confirmed!' });
   }
@@ -179,26 +195,41 @@ export class CheckoutPage {
   }
 
   /**
-   * Selects step 3's shipping method by its visible label (e.g.
-   * "Standard Shipping") and submits.
-   *
-   * Locator note: the radio inputs themselves expose no accessible name
-   * (confirmed live) — the label text lives in the surrounding <label>
-   * instead. Clicking that label toggles its radio, same as clicking
-   * anywhere on a standard HTML label/input pairing.
+   * Selects step 3's shipping method and waits for the order summary to
+   * stop showing the pending shipping price. That is the visible signal
+   * that the shipping-method mutation has settled.
    */
   async selectDeliveryMethod(methodName: string): Promise<void> {
-    await this.page.locator('label').filter({ hasText: methodName }).click();
+    const shippingMethod = this.page.getByRole('radio', {
+      name: new RegExp(methodName, 'i'),
+    });
+    const shippingPricePending = this.page.getByText('To be calculated');
+
+    await expect(async () => {
+      await expect(shippingMethod).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
+
+    await shippingMethod.click();
+    await expect(this.continueToPaymentButton).toBeEnabled({ timeout: 10_000 });
     await this.continueToPaymentButton.click();
+    await expect(shippingPricePending).toBeHidden({ timeout: 20_000 });
   }
 
   /**
-   * Selects step 4's payment method by its visible label (e.g.
-   * "Standard Payment" — this storefront's dev/demo dummy payment
-   * handler, the only option available locally) and submits.
+   * Selects step 4's payment method by its actual radio role and then
+   * advances to the review step once the UI enables the next button.
    */
   async selectPaymentMethod(methodName: string): Promise<void> {
-    await this.page.locator('label').filter({ hasText: methodName }).click();
+    const paymentMethod = this.page.getByRole('radio', {
+      name: new RegExp(methodName, 'i'),
+    });
+
+    await expect(async () => {
+      await expect(paymentMethod).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
+
+    await paymentMethod.click();
+    await expect(this.continueToReviewButton).toBeEnabled({ timeout: 10_000 });
     await this.continueToReviewButton.click();
   }
 
