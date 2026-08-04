@@ -29,20 +29,23 @@ export class HeaderComponent {
   }
 
   /**
-   * Opens the cart. The storefront occasionally leaves the user on the
-   * current product page after the header button click, so this method is
-   * intentionally defensive: it first tries the real UI action, then
-   * falls back to a direct cart navigation if the route never changes.
+   * Opens the cart. Deliberately does not assert on the resulting URL —
+   * that's ShoppingCartPage.verifyCartLoaded()'s job, keeping "navigate"
+   * and "verify" as separate, independently reusable steps.
+   *
+   * A previous version of this method fell back to a direct
+   * page.goto('/en/cart') if the URL didn't change within 4s. That masked
+   * the real bug rather than fixing it: callers were clicking this button
+   * before a preceding Add to Cart mutation had actually settled (see
+   * ProductDetailsPage.addProductToCart), which could leave the app mid
+   * client-side transition and the click without effect. With that race
+   * fixed at the source, a plain click is correct here — if this ever
+   * fails again, it should fail clearly instead of silently forcing a
+   * navigation that hides a genuine timing bug.
    */
   async openCart(): Promise<void> {
     await expect(this.cartButton).toBeVisible();
     await this.cartButton.click();
-
-    try {
-      await this.page.waitForURL(/\/cart$/, { timeout: 4_000 });
-    } catch {
-      await this.page.goto('/en/cart', { waitUntil: 'domcontentloaded' });
-      await this.page.waitForURL(/\/cart$/);
-    }
+    await this.page.waitForURL(/\/cart$/, { timeout: 10_000 });
   }
 }

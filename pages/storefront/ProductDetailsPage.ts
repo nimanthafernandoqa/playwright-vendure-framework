@@ -33,28 +33,40 @@ export class ProductDetailsPage {
   }
 
   /**
-   * Adds the given quantity of the current product to the cart by
-   * clicking Add to Cart once per unit.
+   * Adds the given quantity of the current product to the cart.
    *
-   * IMPORTANT — a real UI constraint, not just a testing detail: after a
-   * click, this button's accessible name flips from "Add to Cart" to
-   * "Added to Cart" as UI feedback, and on this storefront it does not
-   * revert — i.e. the button only supports being clicked once per page
-   * visit. Requesting quantity > 1 here will therefore fail *on purpose*,
-   * quickly and with an explicit message, rather than silently hanging
-   * for the full test timeout waiting for a state that will never come
-   * back. If you need quantity > 1 for a product, add it once here, then
-   * increase the quantity from the cart page itself
-   * (see ShoppingCartPage — currently only exposes decrease/remove;
-   * add an increase() there first if you need this).
+   * A real UI constraint, not just a testing detail: the button only
+   * supports being clicked once per page visit (its label runs through
+   * "Add to Cart" → "Adding..." → back to "Add to Cart" — confirmed live
+   * that it reverts rather than settling on "Added to Cart", so button
+   * text can't be used as a completion signal; a toast briefly appears
+   * instead, but that's transient and not worth depending on either). So
+   * quantity is handled in two parts: one "Add to Cart" click gets the
+   * first unit in, then any remainder is added from the cart page's own
+   * "+" control (see ShoppingCartPage.increaseProductQuantity).
    *
-   * @param quantity Number of units to add (in practice: 0 or 1 given the
-   *   constraint above; loop exists to fail clearly if a caller assumes
-   *   otherwise).
+   * @param quantity Total number of units to end up with in the cart.
    */
   async addProductToCart(quantity: number): Promise<void> {
     await expect(this.addToCartButton).toBeVisible();
+
+    // Adding to cart is an async mutation on this storefront (confirmed
+    // live: the button passes through a disabled "Adding..." state before
+    // settling). The one durable, non-transient signal that it actually
+    // completed is the header cart count changing, so capture it before
+    // clicking and wait for it to differ afterwards — the same
+    // before/after-text-diff pattern already used for the cart page's own
+    // +/- controls (see ShoppingCartPage.reduceProductQuantity). Without
+    // this wait, callers that immediately act on the cart (e.g. opening
+    // it) can race the mutation and observe a stale/empty cart.
+    const cartCountBefore = (await this.header.cartButton.textContent()) ?? '';
+
     await this.addToCartButton.click();
+
+    await expect(async () => {
+      const cartCountAfter = (await this.header.cartButton.textContent()) ?? '';
+      expect(cartCountAfter).not.toBe(cartCountBefore);
+    }).toPass({ timeout: 10_000 });
 
     if (quantity > 1) {
       const productName = (await this.productTitleName.textContent())?.trim();
