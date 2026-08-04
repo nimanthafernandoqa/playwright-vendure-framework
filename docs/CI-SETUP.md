@@ -57,9 +57,7 @@ By default the workflow falls back to `localhost:3001` / `localhost:3000`,
 matching `.env.example`. If you ever run on different ports, set these in
 **Settings → Secrets and variables → Actions**:
 
-- **Variables**: `STOREFRONT_BASE_URL`, `ADMIN_BASE_URL`
-- **Secrets**: `API_USERNAME`, `API_PASSWORD` (only needed for the
-  authenticated Shop API tests — they skip automatically if unset)
+- **Variables**: `STOREFRONT_BASE_URL`
 
 ## 5. Trigger a run
 

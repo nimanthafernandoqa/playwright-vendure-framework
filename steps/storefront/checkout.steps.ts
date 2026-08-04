@@ -34,24 +34,21 @@ When(
   },
 );
 
-When(
-  'I fill in my shipping address:',
-  async ({ checkoutPage }, table: DataTable) => {
-    const address = table.rowsHash();
+When('I fill in my shipping address:', async ({ checkoutPage }, table: DataTable) => {
+  const address = table.rowsHash();
 
-    await checkoutPage.fillShippingAddress({
-      fullName: address.fullName,
-      streetAddress: address.streetAddress,
-      city: address.city,
-      postalCode: address.postalCode,
-      phoneNumber: address.phoneNumber,
-      country: address.country,
-      company: address.company,
-      apartment: address.apartment,
-      stateProvince: address.stateProvince,
-    });
-  },
-);
+  await checkoutPage.fillShippingAddress({
+    fullName: address.fullName,
+    streetAddress: address.streetAddress,
+    city: address.city,
+    postalCode: address.postalCode,
+    phoneNumber: address.phoneNumber,
+    country: address.country,
+    company: address.company,
+    apartment: address.apartment,
+    stateProvince: address.stateProvince,
+  });
+});
 
 When(
   'I choose {string} as my delivery method',
@@ -78,9 +75,6 @@ Then('my order should be confirmed', async ({ checkoutPage }) => {
 // The concrete, verifiable proof that this really was a *guest* checkout:
 // the header still offers "Sign in" rather than showing a logged-in
 // account — i.e. no account was created or required anywhere in the flow.
-Then(
-  'I should still be checked out as a guest, not signed in',
-  async ({ page }) => {
-    await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
-  },
-);
+Then('I should still be checked out as a guest, not signed in', async ({ page }) => {
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
+});

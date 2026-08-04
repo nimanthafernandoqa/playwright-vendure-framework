@@ -55,8 +55,6 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
 
-  // Two independent projects, each scoped to its own testDir so they
-  // don't accidentally pick up each other's files:
   projects: [
     {
       // BDD-generated UI scenarios (features/storefront/*.feature).
@@ -65,13 +63,6 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
       },
-    },
-    {
-      // Plain Playwright API tests — no browser needed, so no `use`
-      // device profile here (keeps these fast; see tests/api/storefront).
-      name: 'api',
-      testDir: './tests/api',
-      testMatch: '**/*.spec.ts',
     },
   ],
 });

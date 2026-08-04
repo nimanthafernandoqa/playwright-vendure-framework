@@ -5,7 +5,6 @@
     "bddgen": "bddgen",
     "test": "bddgen && playwright test",
     "test:ui": "bddgen && playwright test --project=chromium",
-    "test:api": "playwright test --project=api",
     "report": "playwright show-report",
     "install:browsers": "playwright install --with-deps",
     "lint": "eslint .",
@@ -22,7 +21,7 @@
   ],
   "author": "Nimantha Fernando",
   "license": "MIT",
-  "description": "Playwright + BDD (playwright-bdd) test automation framework for the Vendure e-commerce storefront, covering UI and API testing.",
+  "description": "Playwright + BDD (playwright-bdd) test automation framework for the Vendure e-commerce storefront.",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",

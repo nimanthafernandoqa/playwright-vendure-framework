@@ -22,10 +22,4 @@ function readEnv(name: string, fallback: string): string {
 
 export const ENV = {
   storefrontBaseUrl: readEnv('STOREFRONT_BASE_URL', 'http://localhost:3001'),
-  adminBaseUrl: readEnv('ADMIN_BASE_URL', 'http://localhost:3000'),
-
-  // Used by the authenticated Shop API tests in tests/api/storefront —
-  // see .env.example. Those tests skip automatically if unset.
-  apiUsername: process.env.API_USERNAME,
-  apiPassword: process.env.API_PASSWORD,
 };

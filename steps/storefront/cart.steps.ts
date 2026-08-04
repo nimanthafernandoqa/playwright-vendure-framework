@@ -54,12 +54,11 @@ When(
   },
 );
 
-Then(
-  'the search results should show {string}',
-  async ({ page }, productName: string) => {
-    await expect(page.getByRole('heading', { name: productName, exact: true })).toBeVisible();
-  },
-);
+Then('the search results should show {string}', async ({ page }, productName: string) => {
+  await expect(
+    page.getByRole('heading', { name: productName, exact: true }),
+  ).toBeVisible();
+});
 
 When('I open the cart from the header', async ({ headerComponent, shoppingCartPage }) => {
   await headerComponent.openCart();

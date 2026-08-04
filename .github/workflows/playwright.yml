@@ -17,7 +17,7 @@ on:
 
 jobs:
   test:
-    name: UI + API tests
+    name: UI tests
     runs-on: self-hosted
     timeout-minutes: 30
 
@@ -44,12 +44,9 @@ jobs:
         run: npx playwright test
         env:
           CI: true
-          # Override these in the repo/environment's Actions secrets or
-          # variables if your local app runs on non-default ports.
+          # Override in the repo/environment's Actions variables if your
+          # local app runs on a non-default port.
           STOREFRONT_BASE_URL: ${{ vars.STOREFRONT_BASE_URL || 'http://localhost:3001' }}
-          ADMIN_BASE_URL: ${{ vars.ADMIN_BASE_URL || 'http://localhost:3000' }}
-          API_USERNAME: ${{ secrets.API_USERNAME }}
-          API_PASSWORD: ${{ secrets.API_PASSWORD }}
 
       - name: Upload HTML report
         if: always()

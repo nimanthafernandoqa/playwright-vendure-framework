@@ -22,3 +22,14 @@ tests/ui/storefront/*.deprecated
 
 # Moved to the separate playwright-practice sandbox project (../playwright-practice)
 /interview-practice/
+
+# OS metadata
+.DS_Store
+**/.DS_Store
+
+# Local planning/handoff notes, not part of the portfolio commit
+/docs/PROGRESS-SUMMARY.md
+/docs/ROADMAP.md
+
+# Local scratch data; API showcase data is kept in the spec itself
+/test-data/products.json

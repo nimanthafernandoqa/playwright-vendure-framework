@@ -4,13 +4,8 @@ import { expect, Locator, Page } from '@playwright/test';
  * Page Object for the cart page ("/en/cart") — asserting on and
  * modifying the items in it.
  *
- * Fragility note for future maintainers: several locators here
- * (cartItem, the +/- and remove buttons) are matched via Lucide icon
- * class names (`svg.lucide-x`, `svg.lucide-minus`) and a Tailwind
- * utility-class combination rather than test IDs, because none exist on
- * this storefront. These will break if the storefront's icon set or
- * layout classes change — if you get the chance to add `data-testid`
- * attributes to the app itself, prefer that over extending this pattern.
+ * Some locators use icon classes and layout classes because the storefront
+ * does not expose test IDs for cart rows/actions.
  */
 export class ShoppingCartPage {
   private readonly cartHeading: Locator;
@@ -49,31 +44,54 @@ export class ShoppingCartPage {
    * present first. Use this only when the cart is expected to contain a
    * single product; for a cart with multiple items use removeProduct()
    * with an explicit product name instead.
+   *
+   * The click is retried until the row is actually gone. Confirmed live
+   * via a real CI failure (on removeProduct(), same underlying pattern):
+   * a remove click can be lost if it fires while a *different*, preceding
+   * cart mutation is still settling. Unlike Add to Cart, retrying here is
+   * safe — remove has no side effect to duplicate; clicking it again
+   * after it already succeeded simply finds nothing left to click.
    */
   async removeOnlyProduct(): Promise<void> {
     await expect(this.removeItemButton).toHaveCount(1);
-    await this.removeItemButton.click();
+
+    await expect(async () => {
+      if ((await this.removeItemButton.count()) > 0) {
+        await this.removeItemButton.click({ timeout: 2_000 }).catch(() => {});
+      }
+      await expect(this.removeItemButton).toHaveCount(0, { timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
   }
 
   /**
    * Removes a specific product from the cart by name and confirms its
    * row is gone afterwards.
    *
+   * The click is retried until the row is actually gone — see
+   * removeOnlyProduct() above for why that's safe here specifically.
+   * Confirmed live via a real CI failure: "Guest updates and removes
+   * multiple products from the cart" removes Basketball right after
+   * reducing Aloe Vera's quantity in the same step, and the remove click
+   * was lost — the preceding row's mutation re-rendering the list was
+   * still in flight when this click fired. A plain single click had no
+   * way to recover from that; retrying does.
+   *
    * @param productName Exact product name as shown in the cart line item.
    */
   async removeProduct(productName: string): Promise<void> {
     const item = this.cartItem(productName);
-
     const removeButton = item.locator('button:has(svg.lucide-x)');
+    const productLink = this.page.getByRole('link', {
+      name: productName,
+      exact: true,
+    });
 
-    await removeButton.click();
-
-    await expect(
-      this.page.getByRole('link', {
-        name: productName,
-        exact: true,
-      }),
-    ).toHaveCount(0);
+    await expect(async () => {
+      if ((await removeButton.count()) > 0) {
+        await removeButton.click({ timeout: 2_000 }).catch(() => {});
+      }
+      await expect(productLink).toHaveCount(0, { timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
   }
 
   /**
@@ -149,9 +167,7 @@ export class ShoppingCartPage {
 
   /**
    * Leaves the cart for the checkout wizard ("/en/checkout"). Despite its
-   * href, this is rendered as a <button> here (confirmed live), not a
-   * plain link — getByRole('button', ...) is used accordingly rather than
-   * a link role.
+   * href, this is rendered as a <button> here, not a plain link.
    */
   async proceedToCheckout(): Promise<void> {
     await this.proceedToCheckoutButton.click();
@@ -165,14 +181,8 @@ export class ShoppingCartPage {
    * nearest ancestor `<div>` matching the row's known layout classes —
    * see the class-level fragility note above.
    *
-   * This must be the *nearest* matching ancestor, not just *any* ancestor
-   * div — confirmed live that a plain `page.locator('div').filter({ has:
-   * link })` matches every ancestor div up the tree (4 of them on the
-   * real cart page: the row, its list wrapper, the grid, and the page
-   * container), which throws a strict-mode violation the moment any
-   * method below tries to `.click()`/`.fill()` inside it. The XPath walk
-   * stops at the first ancestor whose class list contains the row's
-   * known layout classes, giving exactly one match.
+   * The XPath walk stops at the nearest matching ancestor to avoid
+   * strict-mode violations from matching every wrapper around the row.
    */
   private cartItem(productName: string): Locator {
     return this.page
@@ -192,11 +202,13 @@ export class ShoppingCartPage {
   ): Promise<void> {
     const item = this.cartItem(productName);
 
-    await expect(item).toBeVisible();
-
-    const quantity = item.locator('span.tabular-nums');
-
-    await expect(quantity).toHaveText(String(expectedQuantity));
+    await expect(async () => {
+      await expect(item).toBeVisible({ timeout: 2_000 });
+      await expect(item.locator('span.tabular-nums')).toHaveText(
+        String(expectedQuantity),
+        { timeout: 2_000 },
+      );
+    }).toPass({ timeout: 15_000 });
   }
 
   /**

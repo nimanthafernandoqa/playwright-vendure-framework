@@ -58,16 +58,8 @@ export class HomePage {
    * Searches for a product by name and waits until its result card is
    * visible on the search results page ("/en/search").
    *
-   * Known flakiness this method guards against: this storefront is a
-   * client-rendered app, so typing + Enter doesn't guarantee the results
-   * grid has re-rendered by the time we check for a specific card — this
-   * is especially true for the *second+* search within a single test,
-   * where the previous product's results are still on screen and take a
-   * moment to be swapped out. Rather than adding a fixed sleep (fragile:
-   * too short and it's still flaky, too long and every test gets slower),
-   * the whole "type -> submit -> assert" sequence is wrapped in `toPass`
-   * so it retries as a unit — including re-submitting the search — until
-   * the expected product card appears or the overall timeout is hit.
+   * Retries the submit + assertion sequence because the search page can
+   * briefly show the previous result set while the new query renders.
    *
    * @param product Exact product name to search for and expect a result for.
    */
@@ -84,16 +76,7 @@ export class HomePage {
       }),
     });
 
-    // Retry the whole fill -> Enter -> results sequence as one unit, not
-    // just the fill. On the 1st search of a test the app has just finished
-    // hydrating so it reacts quickly; on the 2nd+ search in the same test
-    // it's swapping out the *previous* product's results, which can take
-    // longer (debounce / re-render), so a single Enter press can fire
-    // before the results update lands. Retrying the full sequence covers
-    // both cases without guessing the exact timing.
     await expect(async () => {
-      // Clear first in case a previous attempt left a partial/incorrect
-      // value (e.g. hydration reset the controlled input mid-type).
       await this.searchBox.fill('');
       await this.searchBox.fill(product);
       await expect(this.searchBox).toHaveValue(product);
