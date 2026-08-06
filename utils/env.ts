@@ -22,4 +22,7 @@ function readEnv(name: string, fallback: string): string {
 
 export const ENV = {
   storefrontBaseUrl: readEnv('STOREFRONT_BASE_URL', 'http://localhost:3001'),
+  shopApiUrl: readEnv('SHOP_API_URL', 'http://localhost:3000/shop-api'),
+  apiUsername: process.env.API_USERNAME,
+  apiPassword: process.env.API_PASSWORD,
 };

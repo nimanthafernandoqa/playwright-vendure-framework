@@ -5,6 +5,7 @@
     "bddgen": "bddgen",
     "test": "bddgen && playwright test",
     "test:ui": "bddgen && playwright test --project=chromium",
+    "test:api": "bddgen && playwright test --project=api",
     "report": "playwright show-report",
     "install:browsers": "playwright install --with-deps",
     "lint": "eslint .",

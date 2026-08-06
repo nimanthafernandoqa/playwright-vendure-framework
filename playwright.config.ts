@@ -16,12 +16,16 @@ import { ENV } from './utils/env';
  * testDir, so Playwright only picks up the *generated* tests, not the
  * source .feature/.steps.ts files directly.
  */
-const bddTestDir = defineBddConfig({
-  features: 'features/**/*.feature',
+const storefrontBddTestDir = defineBddConfig({
+  features: 'features/storefront/**/*.feature',
+  steps: ['steps/storefront/**/*.ts', 'fixtures/storefront/**/*.ts'],
+  outputDir: '.features-gen/storefront',
+});
 
-  steps: ['steps/**/*.ts', 'fixtures/**/*.ts'],
-
-  outputDir: '.features-gen',
+const apiBddTestDir = defineBddConfig({
+  features: 'api/storefront/features/**/*.feature',
+  steps: ['api/storefront/steps/**/*.ts', 'api/storefront/fixtures/**/*.ts'],
+  outputDir: '.features-gen/api',
 });
 
 export default defineConfig({
@@ -59,10 +63,16 @@ export default defineConfig({
     {
       // BDD-generated UI scenarios (features/storefront/*.feature).
       name: 'chromium',
-      testDir: bddTestDir,
+      testDir: storefrontBddTestDir,
       use: {
         ...devices['Desktop Chrome'],
       },
+    },
+    {
+      // BDD-generated Shop GraphQL API scenarios. No browser involved:
+      // these use Playwright's built-in `request` fixture only.
+      name: 'api',
+      testDir: apiBddTestDir,
     },
   ],
 });
