@@ -1,10 +1,10 @@
 # Playwright Vendure Framework
 
-A professional test automation framework built with Playwright, TypeScript,
+A professional QA automation framework built with Playwright, TypeScript,
 and BDD (Gherkin) for the [Vendure](https://vendure.io) e-commerce platform.
-Developed as a real-world QA Automation portfolio project, following
-industry best practices: Behaviour-Driven Development, the Page Object
-Model, reusable fixtures, and CI/CD.
+It covers storefront UI journeys and Vendure Shop GraphQL API behaviour,
+with reusable fixtures, helper layers, environment-based configuration,
+and GitHub Actions CI.
 
 ---
 
@@ -37,12 +37,17 @@ deliberately evolved, step by step, into what it is now:
    shipping address, delivery method, payment, order confirmation —
    without creating an account. See `features/storefront/checkout.feature`
    and `pages/storefront/CheckoutPage.ts`.
-
-API testing (Vendure's Shop GraphQL API) is planned but deliberately not
-included yet — see [Roadmap](#roadmap).
+6. **Shop API coverage added.** Product, cart/order mutation, and
+   authentication scenarios now live under `api/storefront/`, using
+   Playwright's `request` fixture to test Vendure's Shop GraphQL API
+   directly without a browser.
 
 If you're new to this codebase, that ordering is also the recommended
-reading order: `features/` → `steps/` → `fixtures/` → `pages/`.
+reading order:
+
+- UI: `features/` → `steps/` → `fixtures/` → `pages/`
+- API: `api/storefront/features/` → `api/storefront/steps/` →
+  `api/storefront/fixtures/` → `api/storefront/helpers/`
 
 ---
 
@@ -51,6 +56,7 @@ reading order: `features/` → `steps/` → `fixtures/` → `pages/`.
 - Playwright + TypeScript
 - [playwright-bdd](https://vitalets.github.io/playwright-bdd/) (Gherkin
   `.feature` files → native Playwright tests)
+- Vendure Shop GraphQL API testing through Playwright `request`
 - Node.js
 - ESLint + Prettier
 - GitHub Actions (self-hosted runner)
@@ -84,14 +90,16 @@ vendure-qa-automation
 │                                #   into ProductDetailsPage
 │
 ├── utils/
-│   └── env.ts                  # Central env config (storefront URL)
+│   └── env.ts                  # Central env config (UI + API URLs)
 │
 ├── docs/
 │   └── CI-SETUP.md             # Step-by-step self-hosted runner setup
 │
-├── api/                        # Reserved — not yet used. Placeholder for
-│   ├── admin/                  #   upcoming Shop/Admin API test coverage,
-│   └── storefront/             #   added incrementally (see Roadmap)
+├── api/storefront/             # Vendure Shop GraphQL API BDD coverage
+│   ├── features/               #   products, cart/order, authentication
+│   ├── steps/                  #   step definitions for API scenarios
+│   ├── fixtures/               #   typed API state shared between steps
+│   └── helpers/                #   reusable GraphQL request/assert helpers
 │
 ├── performance/k6/             # Reserved — future k6 load/perf tests
 │
@@ -107,9 +115,9 @@ vendure-qa-automation
 └── README.md
 ```
 
-Tests are generated from `features/*.feature` + `steps/*.ts` into
-`.features-gen/` by `playwright-bdd` — that folder is gitignored and
-regenerated on every run (`npm run bddgen`), never edited by hand.
+Tests are generated from UI and API `.feature` files into `.features-gen/`
+by `playwright-bdd` — that folder is gitignored and regenerated on every
+run (`npm run bddgen`), never edited by hand.
 
 ---
 
@@ -139,6 +147,17 @@ If you need to add a new UI scenario, see
 [Writing a new UI test](#writing-a-new-ui-test-bdd) below — you'll touch
 these same five places.
 
+API scenarios follow the same BDD idea, but without Page Objects:
+
+1. **`api/storefront/features/*.feature`** declares the API behaviour in
+   plain English.
+2. **`api/storefront/steps/*.steps.ts`** turns each Gherkin step into a
+   real GraphQL query or mutation.
+3. **`api/storefront/helpers/shop-api.ts`** sends the HTTP POST request to
+   the Vendure Shop API and performs common response checks.
+4. **`api/storefront/fixtures/api.fixture.ts`** provides typed test state
+   so one step can save an API result and another step can assert it.
+
 ---
 
 ## Getting Started
@@ -152,8 +171,8 @@ npm install
 npx playwright install --with-deps chromium
 ```
 
-Copy the env template and adjust if your local Vendure app runs on
-different ports:
+Copy the env template and adjust it if your local Vendure storefront or
+Shop API runs on different ports:
 
 ```bash
 cp .env.example .env
@@ -163,7 +182,8 @@ Make sure your local Vendure app is running (storefront + server), then:
 
 ```bash
 npm test            # generate BDD tests + run everything
-npm run test:ui     # UI (BDD) scenarios only (same as npm test right now)
+npm run test:ui     # storefront UI (BDD) scenarios only
+npm run test:api    # Shop API (BDD) scenarios only
 npm run report      # open the last HTML report
 ```
 
@@ -173,7 +193,8 @@ npm run report      # open the last HTML report
 > it stays focused as a portfolio piece.
 
 Other useful scripts: `npm run lint`, `npm run format`, `npm run bddgen`
-(regenerate `.features-gen/` after editing a `.feature` or step file).
+(regenerate `.features-gen/` after editing a `.feature` or step file),
+and `npx tsc --noEmit` for a TypeScript-only safety check.
 
 ---
 
@@ -187,6 +208,30 @@ Other useful scripts: `npm run lint`, `npm run format`, `npm run bddgen`
 3. If the step needs a new Page Object, register it as a fixture in
    `fixtures/storefront/fixture.ts` so it's available in step functions.
 4. Run `npm run test:ui` — this regenerates `.features-gen/` and runs it.
+
+---
+
+## Writing a new API test (BDD)
+
+1. Add or extend a scenario in `api/storefront/features/*.feature`.
+2. Implement any new step text in `api/storefront/steps/*.steps.ts`.
+3. Use `shopApi()` from `api/storefront/helpers/shop-api.ts` for GraphQL
+   queries/mutations, so API calls and response handling stay consistent.
+4. Store shared data in `apiState` from
+   `api/storefront/fixtures/api.fixture.ts` when one step needs to use
+   the result from a previous step.
+5. Run `npm run test:api`.
+
+Current Shop API coverage includes:
+
+- Product list and product-by-slug queries
+- Negative product lookup for an unknown slug
+- Guest active order checks
+- Add item to order mutation
+- Invalid quantity mutation rejection
+- Invalid login rejection
+- Optional valid customer login, enabled only when safe local credentials
+  are configured in `.env`
 
 ---
 
@@ -215,10 +260,11 @@ for the workflow itself (annotated with the same reasoning inline).
 - ✅ Page Object Model + BDD conversion (Gherkin scenarios)
 - ✅ Shopping cart: add, remove, update quantity
 - ✅ Guest checkout flow, end-to-end
+- ✅ Shop API BDD coverage: products, cart/order mutation, auth checks
 - ✅ GitHub Actions CI/CD (self-hosted runner)
-- ⏳ Shop API testing (products, search, order, auth) — being added
-  incrementally, one endpoint at a time
 - ⏳ Admin API / Admin UI coverage
+- ⏳ Mobile viewport coverage
+- ⏳ AI-assisted failure analysis / controlled self-healing research
 - ⏳ Accessibility testing
 - ⏳ Performance testing (k6)
 
