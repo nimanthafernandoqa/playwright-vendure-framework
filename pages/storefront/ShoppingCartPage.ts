@@ -106,6 +106,14 @@ export class ShoppingCartPage {
    * succession could land on -1 instead of -2, because the second click
    * fired before the app had applied the first.
    *
+   * Each click+wait is itself retried (same pattern as removeProduct()
+   * above): confirmed via a real local run where the very first decrease
+   * click on a freshly-loaded cart page had no effect — the quantity
+   * stayed unchanged for the full assertion timeout — because the page's
+   * client-side app hadn't finished hydrating when the click fired.
+   * Retrying re-clicks in that case; it's safe because a click that
+   * already succeeded just finds nothing left to change.
+   *
    * @param productName Exact product name as shown in the cart line item.
    * @param amount How many times to click decrease (i.e. how much to
    *   reduce the quantity by).
@@ -124,15 +132,19 @@ export class ShoppingCartPage {
     for (let index = 0; index < amount; index++) {
       const before = (await quantity.textContent())?.trim() ?? '';
 
-      await decreaseButton.click();
-
-      await expect(quantity).not.toHaveText(before);
+      await expect(async () => {
+        await decreaseButton.click({ timeout: 2_000 });
+        await expect(quantity).not.toHaveText(before, { timeout: 2_000 });
+      }).toPass({ timeout: 15_000 });
     }
   }
 
   /**
    * Clicks a cart line item's "+" (increase quantity) button the given
    * number of times.
+   *
+   * Each click+wait is retried — see reduceProductQuantity() above for
+   * why (same hydration/timing risk applies to both buttons).
    *
    * @param productName Exact product name as shown in the cart line item.
    * @param amount How many times to click increase.
@@ -151,9 +163,10 @@ export class ShoppingCartPage {
     for (let index = 0; index < amount; index++) {
       const before = (await quantity.textContent())?.trim() ?? '';
 
-      await increaseButton.click();
-
-      await expect(quantity).not.toHaveText(before);
+      await expect(async () => {
+        await increaseButton.click({ timeout: 2_000 });
+        await expect(quantity).not.toHaveText(before, { timeout: 2_000 });
+      }).toPass({ timeout: 15_000 });
     }
   }
 
