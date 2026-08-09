@@ -2,13 +2,16 @@ import { type APIRequestContext } from '@playwright/test';
 import { ENV } from '../../../utils/env';
 import { expect, type ApiResult, type GraphQLResponse } from '../fixtures/api.fixture';
 
-export async function shopApi<T>(request: APIRequestContext,query: string,variables?: Record<string, unknown>,): Promise<ApiResult<T>> {
-  
-const response = await request.post(ENV.shopApiUrl, {
+export async function shopApi<T>(
+  request: APIRequestContext,
+  query: string,
+  variables?: Record<string, unknown>,
+): Promise<ApiResult<T>> {
+  const response = await request.post(ENV.shopApiUrl, {
     data: { query, variables },
-});
+  });
 
-const body = (await response.json()) as GraphQLResponse<T>;
+  const body = (await response.json()) as GraphQLResponse<T>;
 
   return {
     ok: response.ok(),

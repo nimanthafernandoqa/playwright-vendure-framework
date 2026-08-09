@@ -173,10 +173,13 @@ Then(
   },
 );
 
-Then('the active order should contain {int} items', async ({ apiState }, quantity: number) => {
-  const activeOrderResult = getActiveOrderResult(apiState.activeOrderResult);
-  expect(activeOrderResult.body.data?.activeOrder?.totalQuantity).toBe(quantity);
-});
+Then(
+  'the active order should contain {int} items',
+  async ({ apiState }, quantity: number) => {
+    const activeOrderResult = getActiveOrderResult(apiState.activeOrderResult);
+    expect(activeOrderResult.body.data?.activeOrder?.totalQuantity).toBe(quantity);
+  },
+);
 
 Then('the add item result should be an error', async ({ apiState }) => {
   const addItemResult = getAddItemResult(apiState.addItemResult);

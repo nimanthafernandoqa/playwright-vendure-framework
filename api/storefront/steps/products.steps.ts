@@ -48,10 +48,12 @@ When('I request the product list from the Shop API', async ({ request, apiState 
   );
 });
 
-Given('I have an existing product slug from the Shop API', async ({ request, apiState }) => {
-  apiState.productList = await shopApi<ProductListData>(
-    request,
-    `query ProductSlugs {
+Given(
+  'I have an existing product slug from the Shop API',
+  async ({ request, apiState }) => {
+    apiState.productList = await shopApi<ProductListData>(
+      request,
+      `query ProductSlugs {
       products {
         items {
           id
@@ -60,17 +62,18 @@ Given('I have an existing product slug from the Shop API', async ({ request, api
         }
       }
     }`,
-  );
+    );
 
-  const productList = getProductListResult(apiState.productList);
-  const firstProduct = productList.body.data?.products.items[0];
+    const productList = getProductListResult(apiState.productList);
+    const firstProduct = productList.body.data?.products.items[0];
 
-  if (!firstProduct) {
-    throw new Error('Expected at least one product to exist');
-  }
+    if (!firstProduct) {
+      throw new Error('Expected at least one product to exist');
+    }
 
-  apiState.selectedSlug = firstProduct.slug;
-});
+    apiState.selectedSlug = firstProduct.slug;
+  },
+);
 
 When('I request the product by that slug', async ({ request, apiState }) => {
   expect(apiState.selectedSlug, 'Expected an existing product slug').toBeDefined();
