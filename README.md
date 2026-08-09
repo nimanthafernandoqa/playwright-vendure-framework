@@ -1,10 +1,18 @@
 # Playwright Vendure Framework
 
+[![Playwright Tests](https://github.com/nimanthafernandoqa/playwright-vendure-framework/actions/workflows/playwright.yml/badge.svg?branch=main)](https://github.com/nimanthafernandoqa/playwright-vendure-framework/actions/workflows/playwright.yml)
+
 A professional QA automation framework built with Playwright, TypeScript,
 and BDD (Gherkin) for the [Vendure](https://vendure.io) e-commerce platform.
 It covers storefront UI journeys and Vendure Shop GraphQL API behaviour,
 with reusable fixtures, helper layers, environment-based configuration,
 and GitHub Actions CI.
+
+![Playwright HTML report showing 16 passed, 0 failed, 0 flaky, across storefront UI and Shop API scenarios](docs/assets/test-report.png)
+
+_Playwright's own HTML report after a full run — UI scenarios
+(`chromium`) and Shop API scenarios (`api`) side by side. Generate this
+yourself locally with `npm test && npm run report`._
 
 ---
 
