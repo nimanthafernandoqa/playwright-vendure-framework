@@ -4,15 +4,16 @@
 
 A professional QA automation framework built with Playwright, TypeScript,
 and BDD (Gherkin) for the [Vendure](https://vendure.io) e-commerce platform.
-It covers storefront UI journeys and Vendure Shop GraphQL API behaviour,
-with reusable fixtures, helper layers, environment-based configuration,
-and GitHub Actions CI.
+It covers storefront UI journeys across desktop and mobile web, plus
+Vendure Shop GraphQL API behaviour, with reusable fixtures, helper layers,
+environment-based configuration, and GitHub Actions CI.
 
-![Playwright HTML report showing 16 passed, 0 failed, 0 flaky, across storefront UI and Shop API scenarios](docs/assets/test-report.png)
+![Playwright HTML report showing a passing storefront UI and Shop API run](docs/assets/test-report.png)
 
-_Playwright's own HTML report after a full run — UI scenarios
-(`chromium`) and Shop API scenarios (`api`) side by side. Generate this
-yourself locally with `npm test && npm run report`._
+_Playwright's own HTML report from a passing desktop UI + Shop API run.
+The framework now also includes a `mobile-chrome` project for responsive
+mobile web coverage. Generate the latest report locally with
+`npm test && npm run report`._
 
 ---
 
@@ -49,6 +50,9 @@ deliberately evolved, step by step, into what it is now:
    authentication scenarios now live under `api/storefront/`, using
    Playwright's `request` fixture to test Vendure's Shop GraphQL API
    directly without a browser.
+7. **Mobile web project added.** The same storefront BDD scenarios can
+   run against a mobile Chromium viewport, giving responsive web coverage
+   without introducing native mobile-app tooling.
 
 If you're new to this codebase, that ordering is also the recommended
 reading order:
@@ -64,6 +68,7 @@ reading order:
 - Playwright + TypeScript
 - [playwright-bdd](https://vitalets.github.io/playwright-bdd/) (Gherkin
   `.feature` files → native Playwright tests)
+- Desktop and mobile web projects using Playwright browser/device profiles
 - Vendure Shop GraphQL API testing through Playwright `request`
 - Node.js
 - ESLint + Prettier
@@ -191,6 +196,7 @@ Make sure your local Vendure app is running (storefront + server), then:
 ```bash
 npm test            # generate BDD tests + run everything
 npm run test:ui     # storefront UI (BDD) scenarios only
+npm run test:mobile # storefront mobile web (BDD) scenarios only
 npm run test:api    # Shop API (BDD) scenarios only
 npm run report      # open the last HTML report
 ```
@@ -216,6 +222,11 @@ and `npx tsc --noEmit` for a TypeScript-only safety check.
 3. If the step needs a new Page Object, register it as a fixture in
    `fixtures/storefront/fixture.ts` so it's available in step functions.
 4. Run `npm run test:ui` — this regenerates `.features-gen/` and runs it.
+
+The `mobile-chrome` project runs those same storefront BDD scenarios in a
+mobile web viewport. This is responsive website testing, not native
+Android/iOS app testing. Use `npm run test:mobile` when you want to check
+mobile layout and interaction behaviour separately.
 
 ---
 
@@ -268,10 +279,10 @@ for the workflow itself (annotated with the same reasoning inline).
 - ✅ Page Object Model + BDD conversion (Gherkin scenarios)
 - ✅ Shopping cart: add, remove, update quantity
 - ✅ Guest checkout flow, end-to-end
+- ✅ Mobile web project for responsive storefront coverage
 - ✅ Shop API BDD coverage: products, cart/order mutation, auth checks
 - ✅ GitHub Actions CI/CD (self-hosted runner)
 - ⏳ Admin API / Admin UI coverage
-- ⏳ Mobile viewport coverage
 - ⏳ AI-assisted failure analysis / controlled self-healing research
 - ⏳ Accessibility testing
 - ⏳ Performance testing (k6)

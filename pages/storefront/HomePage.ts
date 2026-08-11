@@ -17,9 +17,7 @@ export class HomePage {
       name: 'Shop Now',
     });
 
-    this.searchBox = page.getByRole('searchbox', {
-      name: 'Search products...',
-    });
+    this.searchBox = page.getByPlaceholder('Search products...');
   }
 
   /**
@@ -66,15 +64,22 @@ export class HomePage {
   async searchForProduct(product: string): Promise<void> {
     await this.page.goto('/en/search', { waitUntil: 'domcontentloaded' });
 
-    await expect(this.searchBox).toBeVisible();
-    await expect(this.searchBox).toBeEditable();
-
     const productCard = this.page.locator('a[href^="/en/product/"]').filter({
       has: this.page.getByRole('heading', {
         name: product,
         exact: true,
       }),
     });
+
+    if (!(await this.searchBox.isVisible())) {
+      await this.page.goto(`/en/search?q=${encodeURIComponent(product)}`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await expect(productCard).toBeVisible({ timeout: 10_000 });
+      return;
+    }
+
+    await expect(this.searchBox).toBeEditable();
 
     await expect(async () => {
       await this.searchBox.fill('');

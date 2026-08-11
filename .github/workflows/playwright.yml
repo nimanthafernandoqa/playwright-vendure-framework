@@ -17,7 +17,7 @@ on:
 
 jobs:
   test:
-    name: UI tests
+    name: Playwright suite
     runs-on: self-hosted
     timeout-minutes: 30
 

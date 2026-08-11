@@ -69,6 +69,16 @@ export default defineConfig({
       },
     },
     {
+      // Same storefront BDD scenarios exercised as mobile web. This is not
+      // native app testing; it verifies the responsive Vendure storefront
+      // in a Chromium-based mobile viewport with touch support.
+      name: 'mobile-chrome',
+      testDir: storefrontBddTestDir,
+      use: {
+        ...devices['Pixel 5'],
+      },
+    },
+    {
       // BDD-generated Shop GraphQL API scenarios. No browser involved:
       // these use Playwright's built-in `request` fixture only.
       name: 'api',
