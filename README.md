@@ -114,8 +114,6 @@ vendure-qa-automation
 │   ├── fixtures/               #   typed API state shared between steps
 │   └── helpers/                #   reusable GraphQL request/assert helpers
 │
-├── performance/k6/             # Reserved — future k6 load/perf tests
-│
 ├── .github/workflows/
 │   └── playwright.yml          # CI/CD pipeline (self-hosted runner)
 │

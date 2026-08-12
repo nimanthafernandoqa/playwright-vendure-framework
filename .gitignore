@@ -14,11 +14,6 @@ node_modules/
 
 # Stray/leftover files from local debugging — safe to delete, kept out of git either way
 /12.0.1
-tests/ui/storefront/_legacy/
-tests/ui/storefront/*.deprecated
-
-# Dead code: cart test data now lives inline in Gherkin tables (features/)
-/test-data/storefront/products.ts
 
 # Moved to the separate playwright-practice sandbox project (../playwright-practice)
 /interview-practice/
@@ -32,4 +27,5 @@ tests/ui/storefront/*.deprecated
 /docs/ROADMAP.md
 
 # Local scratch data; API showcase data is kept in the spec itself
-/test-data/products.json
+/test-data/
+/tests/
