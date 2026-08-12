@@ -15,6 +15,23 @@ The framework now also includes a `mobile-chrome` project for responsive
 mobile web coverage. Generate the latest report locally with
 `npm test && npm run report`._
 
+![Vendure storefront search results rendered in a mobile web viewport](docs/assets/mobile-web-search.png)
+
+_The same storefront journey rendered through Playwright's `mobile-chrome`
+project, using a Pixel-style mobile viewport._
+
+---
+
+## Current Proof
+
+- Latest CI result after the cart stability fix: **24 passed, 1 skipped,
+  0 failed, 0 flaky**.
+- Coverage runs across three Playwright projects: desktop web
+  (`chromium`), mobile web (`mobile-chrome`), and Shop API (`api`).
+- The previously flaky cart scenario was kept because it represents a real
+  customer journey; the implementation was stabilized with better waits,
+  responsive cart-row locators, and stronger empty-cart checks.
+
 ---
 
 ## What this project is, and how it got here
