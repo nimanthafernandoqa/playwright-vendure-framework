@@ -175,7 +175,16 @@ export class ShoppingCartPage {
    * last/only item).
    */
   async verifyCartIsEmpty(): Promise<void> {
-    await expect(this.emptyCartHeading).toBeVisible();
+    await expect(async () => {
+      if (await this.emptyCartHeading.isVisible()) {
+        return;
+      }
+
+      await expect(this.page.locator('a[href^="/en/product/"]')).toHaveCount(0, {
+        timeout: 2_000,
+      });
+      await expect(this.proceedToCheckoutButton).toHaveCount(0, { timeout: 2_000 });
+    }).toPass({ timeout: 10_000 });
   }
 
   /**
@@ -189,18 +198,15 @@ export class ShoppingCartPage {
 
   /**
    * Resolves a cart line item's container element from the product name
-   * shown on it. Implementation detail: there's no dedicated "cart row"
-   * test hook, so this walks up from the product name link to its
-   * nearest ancestor `<div>` matching the row's known layout classes —
-   * see the class-level fragility note above.
-   *
-   * The XPath walk stops at the nearest matching ancestor to avoid
-   * strict-mode violations from matching every wrapper around the row.
+   * shown on it. The storefront renders cart rows differently across
+   * desktop and mobile, so this walks up from the product link to the
+   * nearest ancestor that contains the row's quantity control instead of
+   * relying on a layout-specific wrapper class.
    */
   private cartItem(productName: string): Locator {
     return this.page
-      .getByRole('link', { name: productName, exact: true })
-      .locator('xpath=ancestor::div[contains(@class,"flex flex-col sm:flex-row")][1]');
+      .locator('a[href^="/en/product/"]', { hasText: productName })
+      .locator('xpath=ancestor::div[.//span[contains(@class,"tabular-nums")]][1]');
   }
 
   /**

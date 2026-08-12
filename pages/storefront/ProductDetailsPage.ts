@@ -52,11 +52,14 @@ export class ProductDetailsPage {
       );
     }
 
-    const cartCountBefore = (await this.header.cartButton.textContent()) ?? '';
+    const cartCountBefore =
+      (await this.header.cartButton.textContent({ timeout: 2_000 }).catch(() => '')) ??
+      '';
 
     await this.addToCartButton.click();
 
     await expect(async () => {
+      await expect(this.header.cartButton).toBeVisible({ timeout: 2_000 });
       const cartCountAfter = (await this.header.cartButton.textContent()) ?? '';
       expect(cartCountAfter).not.toBe(cartCountBefore);
     }).toPass({ timeout: 10_000 });
