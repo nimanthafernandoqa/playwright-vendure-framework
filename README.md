@@ -31,6 +31,9 @@ project, using a Pixel-style mobile viewport._
 - The previously flaky cart scenario was kept because it represents a real
   customer journey; the implementation was stabilized with better waits,
   responsive cart-row locators, and stronger empty-cart checks.
+- AI-assisted flaky test triage guidance is included in
+  `.agents/qa-flake-triage.md` to support structured failure reports before
+  any fix is made.
 
 ---
 
@@ -266,6 +269,55 @@ Current Shop API coverage includes:
 - Invalid login rejection
 - Optional valid customer login, enabled only when safe local credentials
   are configured in `.env`
+
+---
+
+## AI-Assisted Triage
+
+The repo includes a lightweight QA agent instruction file:
+`.agents/qa-flake-triage.md`.
+
+Its purpose is to investigate failed or flaky Playwright runs and produce a
+clear report before any code changes are made. The expected workflow is:
+
+1. Review the failed scenario, error, screenshot, trace/video, report, and
+   related code.
+2. Classify the issue as test automation, application, test data,
+   environment/CI, or needing more evidence.
+3. Report affected files, affected scenarios, recommended fix, impact, risk,
+   and tests to rerun.
+4. Wait for approval before editing.
+5. Commit only after the fix and evidence are reviewed.
+
+This keeps AI assistance controlled and evidence-based rather than silently
+changing tests.
+
+The repo also has an automatic triage report command:
+
+```bash
+npm run triage:report
+```
+
+After a failed local Playwright run, this reads Playwright's
+`test-results/` error contexts and creates the agent report in
+`reports/agent-failure-fixes/` with:
+
+- where the test failed
+- what error Playwright saw
+- the likely failure type
+- possible fixes
+- affected files and scenarios
+- checks to rerun before committing
+
+In CI, the same report is generated automatically when the Playwright job
+fails. The Markdown version is added to the GitHub Actions run summary, and
+the HTML version is uploaded as the `agent-failure-fixes-report` artifact.
+
+All generated reports now live under one local folder:
+
+- `reports/playwright/index.html` — normal Playwright HTML report
+- `reports/agent-failure-fixes/index.html` — agent failure/fix HTML report
+- `reports/agent-failure-fixes/qa-triage-report.md` — Markdown version
 
 ---
 

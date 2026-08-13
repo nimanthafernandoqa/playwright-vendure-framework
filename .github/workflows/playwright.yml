@@ -48,12 +48,38 @@ jobs:
           # local app runs on a non-default port.
           STOREFRONT_BASE_URL: ${{ vars.STOREFRONT_BASE_URL || 'http://localhost:3001' }}
 
+      - name: Generate QA triage report on failure
+        if: failure()
+        run: npm run triage:report
+
+      - name: Add QA triage report to GitHub summary
+        if: failure()
+        run: cat reports/agent-failure-fixes/qa-triage-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload QA triage report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-triage-report
+          path: |
+            reports/agent-failure-fixes/qa-triage-report.md
+            reports/agent-failure-fixes/index.html
+          retention-days: 14
+
+      - name: Upload agent failure fixes HTML report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-failure-fixes-report
+          path: reports/agent-failure-fixes/
+          retention-days: 14
+
       - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: reports/playwright/
           retention-days: 14
 
       - name: Upload traces & screenshots on failure

@@ -48,7 +48,7 @@ export default defineConfig({
   workers: 1,
   // 'html' -> the local report opened via `npm run report`.
   // 'github' -> annotates failures directly on the CI run/PR.
-  reporter: [['html'], ['github']],
+  reporter: [['html', { outputFolder: 'reports/playwright' }], ['github']],
 
   use: {
     // Applies to the "chromium" (UI) project below — ENV.storefrontBaseUrl
